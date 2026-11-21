@@ -1,0 +1,52 @@
+=== DATA ===
+gym_members.csv: 330 members, 7 columns, averages over the last 3 months
+Average extras spend: $26.01 a month
+Random 70/30 split (seed=42): train = 231, test = 99
+Features: ['age', 'visits_per_month', 'avg_visit_minutes', 'classes_per_month', 'months_member', 'monthly_extras_spend']
+Left out: member_id (an identifier, says nothing about the member)
+Scaling: each feature standardised (mean 0, sd 1) using training members only
+
+=== WITHIN-GROUP SPREAD BY k (centers fitted on training members only) ===
+  k   Train spread   Test spread   Test drop vs k-1
+  1         1386.0         600.7                   
+  2          950.3         403.6                33%
+  3          611.5         284.2                30%
+  4          336.0         150.0                47%
+  5          310.5         141.4                 6%
+  6          287.2         130.6                 8%
+  7          271.9         130.5                 0%
+  8          254.6         125.3                 4%
+Chosen k = 4: last big drop on both curves; after it each extra group cuts spread by under 10%
+Test spread: baseline (k=1) 600.7  v1 (k=4) 150.0  -> 75% lower
+
+=== v1 SEGMENTS (k = 4): centers = average member, training members ===
+                                    0              1             2             3
+name                  New and testing  Loyal seniors  Gym regulars  Class lovers
+age                              27.3           64.2          33.2          42.6
+visits_per_month                  3.0           12.0          16.0           9.4
+avg_visit_minutes                40.7           46.5          64.5          55.1
+classes_per_month                 0.9            3.9           0.9           7.0
+months_member                     5.8           57.8          30.3          24.0
+monthly_extras_spend              9.0           17.4          24.9          47.3
+members_train                      46             45            79            61
+share_spend_under_20             0.83            0.6          0.39          0.02
+credit_net_train                  110            -45          -325          -595
+gets_credit                      True          False         False         False
+
+=== DECISION ===
+Credit goes to: New and testing
+No credit for: Loyal seniors, Gym regulars, Class lovers
+New member {'age': 30, 'visits_per_month': 4, 'avg_visit_minutes': 42, 'classes_per_month': 1, 'months_member': 5, 'monthly_extras_spend': 10}
+  -> segment: New and testing, gets credit: yes
+
+=== VALUE: gym's monthly net from the credit, all 330 members, member by member ===
+Segment            Members  Avg spend  Under $20  Net if credited  Credit
+New and testing         70       9.30         59              185     yes
+Loyal seniors           60      16.35         37              -45      no
+Gym regulars           109      24.60         43             -445      no
+Class lovers            91      46.93          1             -895      no
+
+Baseline (credit to all 330):   -$1,200 a month   (-$14,400 a year)
+v1 (credit to 70 members):     +$185 a month   (+$2,220 a year)
+Difference (v1 - baseline):  +$1,385 a month   (+$16,620 a year)
+Credits sent: baseline 330, v1 70
